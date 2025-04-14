@@ -1,0 +1,90 @@
+{
+  "name": "latex-checker",
+  "displayName": "latex-checker",
+  "description": "Use LLM's API to check the English grammer in LaTeX files.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "latex-checker.checkGrammer",
+        "title": "Check Grammer"
+      }
+    ],
+    "configuration": {
+      "title": "LaTeX Checker",
+      "properties": {
+        "latex-checker.temperature": {
+          "type": "number",
+          "scope": "resource",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 1,
+          "description": "Controls the randomness of the output. Lower values (~0.1) make the output more deterministic and focused. Higher values (~1.0+) increase creativity and diversity but also risk incoherence.",
+          "markdownDescription": "Controls the randomness of the AI's response generation. Affects the probability distribution when selecting the next word/token.\n\n*   **Lower values** (e.g., `0.1`, `0.2`): Make the model more focused, predictable, and deterministic. Good for tasks requiring precision like simple corrections.\n*   **Higher values** (e.g., `0.8`, `1.0`, `1.2`): Increase creativity, diversity, and unexpectedness in the response. Might be useful for suggesting alternative phrasing, but increases the risk of nonsensical or off-topic output.\n*   **Value of `0`**: Often corresponds to greedy decoding (always picking the most likely token).\n\n`Default: 0.5`. Adjust based on whether you prefer conservative corrections or more varied suggestions. Note that not all models/endpoints support the full range or behave identically."
+        },
+        "latex-checker.top-p": {
+          "type": "number",
+          "scope": "resource",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1,
+          "description": "(Nucleus Sampling) Selects the next token from the smallest set of tokens whose cumulative probability exceeds P. Value near 1.0 is permissive, near 0.0 is restrictive. Often used instead of Top-K.",
+          "markdownDescription": "Uses Nucleus Sampling. Instead of sampling from the Top-K tokens, it samples from the smallest possible set of tokens whose cumulative probability mass exceeds the value `p`.\n\n*   **Value `1.0`:** Considers all tokens (disables Top-P effectivey, though some APIs might have slight differences from *not* setting it). Behavior relies mainly on `temperature`.\n*   **Value near `1.0`** (e.g., `0.9`, `0.95` - **Default: `0.9`**): Allows high diversity by considering most probable tokens until the cumulative probability threshold is met. This dynamically adjusts the pool size based on the certainty of the model at each step.\n*   **Lower values** (e.g., `0.1`, `0.2`): Greatly restrict the choices to only the very highest probability tokens, leading to more deterministic and focused output.\n\n**Note:** Top-P (`top_p`) sampling is often considered a more sophisticated alternative to Top-K (`top_k`). Many services recommend setting **only one** of `top_k` (to a non-zero value) or `top_p` (to a value less than 1). Check your service's documentation for recommended usage and interactions between these parameters."
+        },
+        "latex-checker.openai.base_url": {
+          "type": "string",
+          "scope": "resource",
+          "default": "",
+          "description": "Specifies a custom base URL for the OpenAI API endpoint. Useful for proxies or self-hosted compatible APIs (e.g., Ollama, LocalAI). Leave empty to use the default OpenAI endpoint.",
+          "markdownDescription": "Specifies a custom base URL for the OpenAI-compatible API endpoint (must include `/v1` or similar path if required by the endpoint).\n\n*   **Default (empty):** Uses the official OpenAI API (`https://api.openai.com/v1`).\n*   **Custom:** Enter the full base URL, e.g., `http://localhost:11434/v1` for Ollama or `http://my-proxy.com/openai-api`."
+        },
+        "latex-checker.openai.api_key": {
+          "type": "string",
+          "scope": "resource",
+          "default": "",
+          "description": "The API key for authenticating with the OpenAI-compatible service. Required for most cloud services. Keep this confidential.",
+          "markdownDescription": "Enter the API key provided by your OpenAI or compatible service provider (corresponding to the `base_url`).\n\n*   **Required** for accessing the official OpenAI API or other cloud services that mandate authentication.\n*   **May be optional** for some local or self-hosted models if they are configured without authentication.\n*   Obtain your key from your service provider (e.g., the OpenAI platform website).\n\n`**Security Warning:**` Treat your API key like a sensitive password. **Do not share it or commit it to version control.** It's recommended to configure this in your User Settings rather than Workspace Settings if sharing the workspace."
+        },
+        "latex-checker.openai.model": {
+          "type": "string",
+          "scope": "resource",
+          "default": "",
+          "description": "Specifies the identifier of the AI model to use (e.g., 'gpt-4o', 'gpt-3.5-turbo', 'llama3'). Availability depends on the configured API base URL and key.",
+          "markdownDescription": "Sets the specific AI model identifier used for processing LaTeX checks.\n\n*   **Examples:** `gpt-4o`, `gpt-3.5-turbo`, `claude-3-sonnet-20240229`, `llama3:8b` (for Ollama).\n*   Different models have varying levels of accuracy, speed, context window size, and cost.\n*   The models available **depend heavily on the service provider** configured in `latex-checker.openai.base_url` and potentially your API key's permissions.\n\nConsult the documentation for your specific service provider:\n*   **OpenAI:** [OpenAI Models Documentation](https://platform.openai.com/docs/models)\n*   **Custom/Local Endpoints (Ollama, etc.):** Refer to the documentation or API of that service for supported model identifiers.\n\nIf the specified model is not available or invalid for the configured endpoint, requests may fail."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.54.0",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.23.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@google/genai": "^0.8.0",
+    "latex-checker": "file:",
+    "openai": "^4.93.0"
+  }
+}
