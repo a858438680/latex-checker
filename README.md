@@ -26,8 +26,8 @@ A Visual Studio Code extension that leverages OpenAI-compatible Large Language M
 1.  **Install the extension.**
 2.  **Configure the extension settings** (see Configuration section below). You *must* provide at least the model name and usually an API key and potentially a base URL if not using the default OpenAI API.
 3.  **Open a LaTeX file** (`.tex` or similar) in VS Code.
-4.  **Open the Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-5.  **Type and select** the command: `LaTeX Checker: Check Grammar`.
+4.  **Open the Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P`) and **Type and select** the command: `LaTeX Checker: Check Grammar`.
+5.  Or **Click the button "Check Grammer"** on the top-right.
 6.  **Wait** while the extension communicates with the LLM (a progress indicator will be shown in the status bar or notification area).
 7.  **Review the suggestions** in the diff view that appears. The suggested text is on the left (temporary document), and your original document is on the right.
 8.  Manually apply the changes you want to keep from the diff view to your original file. The suggested document on the left is read-only.
@@ -39,12 +39,12 @@ A Visual Studio Code extension that leverages OpenAI-compatible Large Language M
 *   **LLM Compatibility:** The chosen LLM must be capable of following the instructions in the `assets/system_prompt.txt` file and generating output in the required `<original>...</original><reason>...</reason><corrected>...</corrected>` format. Results may vary significantly depending on the LLM's capabilities.
 ## Configuration
 Configure the extension via VS Code's `settings.json` file (`File > Preferences > Settings`, then search for "latex-checker").
-*   **`latex-checker.openai.apiKey`**:
+*   **`latex-checker.openai.api_key`**:
     *   Your API key for the LLM service.
     *   Type: `string`
     *   Default: `undefined` (You usually need to set this)
     *   *Security Note:* Consider using VS Code's Secret Storage API or environment variables for storing sensitive keys, though this extension currently reads directly from settings.
-*   **`latex-checker.openai.baseUrl`**:
+*   **`latex-checker.openai.base_url`**:
     *   The base URL of the LLM API endpoint. Change this if you are using a local LLM or a different provider.
     *   Type: `string`
     *   Default: `"https://api.openai.com/v1"` (OpenAI default - `/v1` path is often automatically added by the `openai` library if not present, but check your provider's documentation)
@@ -56,18 +56,18 @@ Configure the extension via VS Code's `settings.json` file (`File > Preferences 
     *   Controls the randomness of the LLM's output. Lower values (e.g., 0.2) make the output more deterministic, while higher values (e.g., 1.0) make it more creative/random.
     *   Type: `number`
     *   Default: `1`
-*   **`latex-checker.top_p`**:
+*   **`latex-checker.top-p`**:
     *   Nucleus sampling parameter. An alternative to temperature that controls randomness by considering only the most probable tokens. `1` effectively disables it.
     *   Type: `number`
     *   Default: `1`
 **Example `settings.json`:**
 ```json
 {
-    "latex-checker.openai.apiKey": "sk-YOUR_API_KEY_HERE", // Or leave blank if your local server doesn't need one
-    "latex-checker.openai.baseUrl": "http://localhost:11434/v1", // Example for Ollama OpenAI-compatible endpoint
+    "latex-checker.openai.api_key": "sk-YOUR_API_KEY_HERE", // Or leave blank if your local server doesn't need one
+    "latex-checker.openai.base_url": "http://localhost:11434/v1", // Example for Ollama OpenAI-compatible endpoint
     "latex-checker.openai.model": "llama3",
     "latex-checker.temperature": 0.7,
-    "latex-checker.top_p": 1
+    "latex-checker.top-p": 1
 }
 ```
 ## System Prompt (`assets/system_prompt.txt`)
@@ -83,4 +83,4 @@ If you find the LLM isn't providing good suggestions or fails to follow the form
 ## Contributing
 Contributions, issues, and feature requests are welcome! Please check the [Issues](https://github.com/YOUR_GITHUB_REPO/issues) page (replace with your actual repo link).
 ## License
-[MIT License](LICENSE.txt)
+[MIT License](https://github.com/a858438680/latex-checker/raw/master/LICENSE)

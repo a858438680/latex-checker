@@ -2,15 +2,20 @@
   "name": "latex-checker",
   "displayName": "latex-checker",
   "description": "Use LLM's API to check the English grammer in LaTeX files.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.54.0"
   },
   "categories": [
     "Other"
   ],
+  "publisher": "ArchLover",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a858438680/latex-checker.git"
+  },
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -18,6 +23,16 @@
         "title": "Check Grammer"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "latex-checker.checkGrammer",
+          "when": "resourceLangId == latex",
+          "group": "navigation",
+          "icon": "$(check)"
+        }
+      ]
+    },
     "configuration": {
       "title": "LaTeX Checker",
       "properties": {
@@ -64,12 +79,15 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "watch:esbuild": "node esbuild.js --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "check-types": "tsc --noEmit",
+    "package": "npm run check-types && node esbuild.js --production"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -79,8 +97,10 @@
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.25.2",
     "eslint": "^9.23.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "uuid": "^11.1.0"
   },
   "dependencies": {
     "@google/genai": "^0.8.0",

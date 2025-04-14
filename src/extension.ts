@@ -4,24 +4,35 @@ import * as vscode from 'vscode';
 import OpenAI from 'openai';
 import * as path from 'path';
 import * as fs from 'fs'; // Or preferably fs.promises
-
-const temporaryContentStore = new Map<string, string>();
+import { v4 as uuidv4 } from 'uuid';
 
 class TempContentProvider implements vscode.TextDocumentContentProvider {
+	temporaryContentStore: Map<string, string>;
+
+	constructor() {
+		this.temporaryContentStore = new Map<string, string>();
+	}
 	// Optional event emitter (useful if content can change dynamically)
 	// private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
 	// readonly onDidChange = this._onDidChange.event;
 	provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
-		console.log(`Providing content for URI: ${uri.toString()}`);
+		console.log(`Providing content for ID: ${uri.path}`);
 		// Retrieve the content from our store
-		const content = temporaryContentStore.get(uri.path);
+		const content = this.temporaryContentStore.get(uri.path);
 		if (content !== undefined) {
 			return content;
 		} else {
 			// Handle cases where the content isn't found (e.g., closed diff)
+			console.log(this.temporaryContentStore);
 			console.error(`Temporary content not found for ID: ${uri.path}`);
 			return `Error: Content for temporary diff '${uri.path}' not found.`;
 		}
+	}
+
+	set(uri: vscode.Uri, value: string) {
+		console.log(`Setting content for ID: ${uri.path}`);
+		this.temporaryContentStore.set(uri.path, value);
+		console.log(this.temporaryContentStore);
 	}
 	// Optional: Method to signal that content has changed (if needed)
 	// update(uri: vscode.Uri) {
@@ -177,17 +188,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const extensionPath = context.extensionPath;
 	const promptFilePath = path.join(extensionPath, 'assets', 'system_prompt.txt');
+	const provider = new TempContentProvider();
+	// IMPORTANT: Add the registration to subscriptions for proper disposal on deactivation
+	const scheme = 'latex-checker-temp'; // Your unique scheme
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(scheme, provider)
+	);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	const disposable = vscode.commands.registerCommand('latex-checker.checkGrammer', async () => {
-		const scheme = 'latex-checker-temp'; // Your unique scheme
-		const provider = new TempContentProvider();
-		// IMPORTANT: Add the registration to subscriptions for proper disposal on deactivation
-		context.subscriptions.push(
-			vscode.workspace.registerTextDocumentContentProvider(scheme, provider)
-		);
 
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -195,7 +206,9 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		const originalUri = editor.document.uri;
-		const suggestedUri = vscode.Uri.from({ scheme: scheme, path: `${originalUri.path}` });
+		const suggestedUuid = uuidv4();
+		const suggestedUri = vscode.Uri.from({ scheme: scheme, path: suggestedUuid });
+		console.log(suggestedUri);
 		const originalText = editor.document.getText();
 
 		const systemPrompt = await fs.promises.readFile(promptFilePath, 'utf8');
@@ -249,7 +262,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			const corrections = parseCorrections(response);
 			const suggestedText = applyCorrections(originalText, corrections);
-			temporaryContentStore.set(originalUri.path, suggestedText);
+			provider.set(suggestedUri, suggestedText);
 			vscode.commands.executeCommand('vscode.diff',
 				suggestedUri,
 				originalUri,
